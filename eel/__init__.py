@@ -595,11 +595,15 @@ def _get_real_path(path: str) -> str:
 
 
 def _mock_js_function(f: str) -> None:
-    exec('%s = lambda *args: _mock_call("%s", args)' % (f, f), globals())
+    if not f.isidentifier():
+        return
+    globals()[f] = lambda *args: _mock_call(f, args)
 
 
 def _import_js_function(f: str) -> None:
-    exec('%s = lambda *args: _js_call("%s", args)' % (f, f), globals())
+    if not f.isidentifier():
+        return
+    globals()[f] = lambda *args: _js_call(f, args)
 
 
 def _call_object(name: str, args: Any) -> Dict[str, Any]:
