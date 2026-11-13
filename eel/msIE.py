@@ -14,9 +14,9 @@ def run(_path: str, options: OptionsDictT, start_urls: List[str]) -> None:
     if not start_urls:
         return
     url = start_urls[0]
-    # On Windows, launch via os.startfile or safe subprocess
-    if hasattr(os, 'startfile'):
-        os.startfile(f'microsoft-edge:{url}')  # type: ignore[attr-defined]
+    startfile = getattr(os, 'startfile', None)
+    if callable(startfile):
+        startfile(f'microsoft-edge:{url}')
     else:
         sps.Popen(['cmd', '/c', 'start', f'microsoft-edge:{url}'],
                   stdout=sys.stdout, stderr=sys.stderr, stdin=sps.PIPE)

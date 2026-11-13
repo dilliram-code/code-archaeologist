@@ -3,18 +3,13 @@ import os
 import sys
 from argparse import ArgumentParser, Namespace
 from typing import List
-
-try:
-    from importlib.resources import files, as_file
-except ImportError:
-    from importlib_resources import files, as_file  # type: ignore[no-redef]
+import importlib.resources as resources
 
 
 def get_eel_js_path() -> str:
     """Safely resolve the file path to eel.js for PyInstaller packaging."""
-    ref = files('eel') / 'eel.js'
-    # Use as_file to support both extracted directories and zipped distributions
-    with as_file(ref) as file_path:
+    ref = resources.files('eel') / 'eel.js'
+    with resources.as_file(ref) as file_path:
         return str(file_path)
 
 
