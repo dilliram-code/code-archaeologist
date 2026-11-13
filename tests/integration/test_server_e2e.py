@@ -1,5 +1,4 @@
 import json
-import time
 import urllib.request
 import websocket
 import pytest
@@ -30,8 +29,8 @@ def test_eel_http_and_websocket_e2e():
         host='127.0.0.1',
     )
 
-    # Allow greenlet server to bind and start
-    time.sleep(0.5)
+    # Yield control to gevent event loop so Bottle WSGI server can bind and listen
+    eel.sleep(0.5)
     actual_port = eel._start_args['port']
     assert actual_port > 0, f"Expected valid assigned port, got {actual_port}"
 
