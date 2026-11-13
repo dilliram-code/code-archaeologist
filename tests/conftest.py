@@ -1,44 +1,57 @@
 import os
 import platform
 from unittest import mock
-
 import pytest
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service as ChromeService
-from webdriver_manager.chrome import ChromeDriverManager
+
+import eel.chrome as chm
+import eel.edge as edge
 
 
 @pytest.fixture
 def driver():
-    TEST_BROWSER = os.environ.get("TEST_BROWSER", "chrome").lower()
+    test_browser = os.environ.get("TEST_BROWSER", "auto").lower()
 
-    if TEST_BROWSER == "chrome":
+    if test_browser in ["auto", "chrome"]:
         options = webdriver.ChromeOptions()
         options.add_argument('--headless=new')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--no-sandbox')
         options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
 
-        if platform.system() == "Windows":
-            options.binary_location = "C:/Program Files/Google/Chrome/Application/chrome.exe"
+        browser_path = chm.find_path()
+        if browser_path and not browser_path.endswith(('Google Chrome', 'chrome.exe')):
+            options.binary_location = browser_path
 
-        driver = webdriver.Chrome(
-            service=ChromeService(ChromeDriverManager().install()),
-            options=options,
-        )
+        try:
+            driver = webdriver.Chrome(options=options)
+        except Exception:
+            # Fallback to Edge if Chrome is not available
+            edge_options = webdriver.EdgeOptions()
+            edge_options.add_argument('--headless=new')
+            edge_options.add_argument('--disable-gpu')
+            edge_options.add_argument('--no-sandbox')
+            edge_path = edge.find_path()
+            if edge_path:
+                edge_options.binary_location = edge_path
+            driver = webdriver.Edge(options=edge_options)
 
-    # Firefox doesn't currently supported pulling JavaScript console logs, which we currently scan to affirm that
-    # JS/Python can communicate in some places. So for now, we can't really use firefox/geckodriver during testing.
-    # This may be added in the future: https://github.com/mozilla/geckodriver/issues/284
-
-    # elif TEST_BROWSER == "firefox":
-    #     options = webdriver.FirefoxOptions()
-    #     options.headless = True
-    #     capabilities = DesiredCapabilities.FIREFOX
-    #     capabilities['loggingPrefs'] = {"browser": "ALL"}
-    #
-    #     driver = webdriver.Firefox(options=options, capabilities=capabilities, service_log_path=os.path.devnull)
-
+    elif test_browser == "edge":
+        options = webdriver.EdgeOptions()
+        options.add_argument('--headless=new')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--no-sandbox')
+        edge_path = edge.find_path()
+        if edge_path:
+            options.binary_location = edge_path
+        driver = webdriver.Edge(options=options)
     else:
-        raise ValueError(f"Unsupported browser for testing: {TEST_BROWSER}")
+        raise ValueError(f"Unsupported browser for testing: {test_browser}")
 
     with mock.patch("eel.browsers.open"):
         yield driver
+
+    try:
+        driver.quit()
+    except Exception:
+        pass

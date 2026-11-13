@@ -13,6 +13,12 @@ import psutil
 TEST_DATA_DIR = Path(__file__).parent / "data"
 
 
+def _get_proc_connections(proc):
+    if hasattr(proc, 'net_connections'):
+        return proc.net_connections()
+    return proc.connections()
+
+
 def get_process_listening_port(proc):
     conn = None
     if platform.system() == "Windows":
@@ -24,16 +30,16 @@ def get_process_listening_port(proc):
             if (3, 6) <= sys.version_info < (3, 7):
                 children = [current_process]
         for child in children:
-            while child.connections() == [] and not any(conn.status == "LISTEN" for conn in child.connections()):
+            while _get_proc_connections(child) == [] and not any(conn.status == "LISTEN" for conn in _get_proc_connections(child)):
                 time.sleep(0.01)
 
-            conn = next(filter(lambda conn: conn.status == "LISTEN", child.connections()))
+            conn = next(filter(lambda c: c.status == "LISTEN", _get_proc_connections(child)))
     else:
         psutil_proc = psutil.Process(proc.pid)
-        while not any(conn.status == "LISTEN" for conn in psutil_proc.connections()):
+        while not any(conn.status == "LISTEN" for conn in _get_proc_connections(psutil_proc)):
             time.sleep(0.01)
 
-        conn = next(filter(lambda conn: conn.status == "LISTEN", psutil_proc.connections()))
+        conn = next(filter(lambda c: c.status == "LISTEN", _get_proc_connections(psutil_proc)))
     return conn.laddr.port
 
 
