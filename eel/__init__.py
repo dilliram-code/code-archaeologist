@@ -173,7 +173,7 @@ def init(
                 with open(os.path.join(root, name), encoding='utf-8') as file:
                     contents = file.read()
                     expose_calls = set()
-                    matches = EXPOSED_JS_FUNCTIONS.parseString(contents).asList()
+                    matches = _parse_exposed_js_calls(contents)
                     for expose_call in matches:
                         # Verify that function name is valid
                         msg = "eel.expose() call contains '(' or '='"
