@@ -135,7 +135,6 @@ eel = {
                             let return_val = eel._exposed_functions[message.name](...message.args);
                             eel._websocket.send(eel._toJSON({'return': message.call, 'status':'ok', 'value': return_val}));
                         } catch(err) {
-                            debugger
                             eel._websocket.send(eel._toJSON(
                                 {'return': message.call,
                                 'status':'error',
