@@ -1,5 +1,4 @@
 from __future__ import annotations
-from builtins import range
 import traceback
 from io import open
 from typing import Union, Any, Dict, List, Set, Tuple, Optional, Callable
@@ -18,18 +17,18 @@ import eel.browsers as brw
 import pyparsing as pp
 import random as rnd
 import sys
-import importlib_resources
+try:
+    from importlib.resources import files, as_file
+except ImportError:
+    from importlib_resources import files, as_file  # type: ignore[no-redef]
 import socket
 import mimetypes
 
 
 mimetypes.add_type('application/javascript', '.js')
 
-# https://setuptools.pypa.io/en/latest/pkg_resources.html
-#     Use of pkg_resources is deprecated in favor of importlib.resources
-# Migration guide: https://importlib-resources.readthedocs.io/en/latest/migration.html
-_eel_js_reference = importlib_resources.files('eel') / 'eel.js'
-with importlib_resources.as_file(_eel_js_reference) as _eel_js_path:
+_eel_js_reference = files('eel') / 'eel.js'
+with as_file(_eel_js_reference) as _eel_js_path:
     _eel_js: str = _eel_js_path.read_text(encoding='utf-8')
 
 _websockets: List[Tuple[Any, WebSocketT]] = []
@@ -118,18 +117,25 @@ def expose(name_or_function: Optional[Callable[..., Any]] = None) -> Callable[..
 
 # PyParsing grammar for parsing exposed functions in JavaScript code
 # Examples: `eel.expose(w, "func_name")`, `eel.expose(func_name)`, `eel.expose((function (e){}), "func_name")`
+_nested_expr = getattr(pp, 'nested_expr', getattr(pp, 'nestedExpr', None))
 EXPOSED_JS_FUNCTIONS: pp.ZeroOrMore = pp.ZeroOrMore(
     pp.Suppress(
         pp.SkipTo(pp.Literal('eel.expose('))
         + pp.Literal('eel.expose(')
         + pp.Optional(
-            pp.Or([pp.nestedExpr(), pp.Word(pp.printables, excludeChars=',')]) + pp.Literal(',')
+            pp.Or([_nested_expr(), pp.Word(pp.printables, exclude_chars=',')]) + pp.Literal(',')
         )
     )
     + pp.Suppress(pp.Regex(r'["\']?'))
-    + pp.Word(pp.printables, excludeChars='"\')')
+    + pp.Word(pp.printables, exclude_chars='"\')')
     + pp.Suppress(pp.Regex(r'["\']?\s*\)')),
 )
+
+
+def _parse_exposed_js_calls(contents: str) -> List[str]:
+    if hasattr(EXPOSED_JS_FUNCTIONS, 'parse_string'):
+        return EXPOSED_JS_FUNCTIONS.parse_string(contents).as_list()  # type: ignore[no-any-return]
+    return EXPOSED_JS_FUNCTIONS.parseString(contents).asList()  # type: ignore[no-any-return]
 
 
 def init(
