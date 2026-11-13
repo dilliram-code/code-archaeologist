@@ -197,16 +197,16 @@ def start(
         port: int = 8000,
         block: bool = True,
         jinja_templates: Optional[str] = None,
-        cmdline_args: List[str] = ['--disable-http-cache'],
+        cmdline_args: Optional[List[str]] = None,
         size: Optional[Tuple[int, int]] = None,
         position: Optional[Tuple[int, int]] = None,
-        geometry: Dict[str, Tuple[int, int]] = {},
+        geometry: Optional[Dict[str, Tuple[int, int]]] = None,
         close_callback: Optional[Callable[..., Any]] = None,
         app_mode: bool = True,
         all_interfaces: bool = False,
         disable_cache: bool = True,
         default_path: str = 'index.html',
-        app: btl.Bottle = btl.default_app(),
+        app: Optional[btl.Bottle] = None,
         shutdown_delay: float = 1.0,
         suppress_error: bool = False) -> None:
     '''Start the Eel app.
@@ -282,6 +282,19 @@ def start(
         users of breaking API change for v1.0.0. Set to `True` to suppress
         the error message.
     '''
+    if cmdline_args is None:
+        cmdline_args = ['--disable-http-cache']
+    else:
+        cmdline_args = list(cmdline_args)
+
+    if geometry is None:
+        geometry = {}
+    else:
+        geometry = dict(geometry)
+
+    if app is None:
+        app = btl.default_app()
+
     _start_args.update({
         'mode': mode,
         'host': host,
