@@ -38,3 +38,4 @@ Before submitting a Pull Request, ensure that:
 - **Minimal Boilerplate:** Preserve the 3-line startup simplicity of Eel.
 - **Security by Default:** Never use dynamic code execution (`exec`, `eval`) or unescaped subprocess commands (`shell=True`).
 - **Standardized Packaging:** All dependencies and metadata must remain PEP 517/621 compliant in `pyproject.toml`.
+

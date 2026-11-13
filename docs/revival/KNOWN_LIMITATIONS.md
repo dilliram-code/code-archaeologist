@@ -26,3 +26,4 @@ Key architectural boundaries to keep in mind:
 
 5. **Legacy Internet Explorer Mode:**
    The `msie` mode is maintained solely for legacy backwards-compatibility via Microsoft Edge's IE compatibility redirect on Windows. Internet Explorer 11 itself has been retired by Microsoft.
+

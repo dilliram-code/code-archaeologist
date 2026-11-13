@@ -22,3 +22,4 @@ EXPOSE 8000
 
 # Default command: run hello_world example in headless / web server mode
 CMD ["python", "examples/01 - hello_world/hello.py"]
+

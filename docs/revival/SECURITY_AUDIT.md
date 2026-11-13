@@ -89,3 +89,4 @@ Three vulnerabilities were identified and successfully remediated:
 All security remediations have been verified with automated unit tests and strict static type checks:
 - `tests/unit/test_eel.py::test_malicious_js_identifier_rejected`: **PASSED**
 - Strict static analysis: **0 warnings, 0 errors**.
+

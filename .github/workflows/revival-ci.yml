@@ -39,3 +39,4 @@ jobs:
       - name: Run unit & integration tests
         run: |
           pytest tests/unit tests/integration/test_server_e2e.py -v
+

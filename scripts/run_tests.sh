@@ -8,3 +8,4 @@ echo "=== Running Unit & Integration Tests (Pytest) ==="
 PYTHONPATH=. .venv/bin/pytest tests/unit tests/integration/test_server_e2e.py -v
 
 echo "=== All Tests and Checks Passed Successfully! ==="
+

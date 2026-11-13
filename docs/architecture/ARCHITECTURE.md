@@ -59,3 +59,4 @@ sequenceDiagram
   - `eel.edge`: Microsoft Edge (Chromium-based)
   - `eel.electron`: Electron standalone binaries
   - `eel.msIE`: Legacy Edge IE compatibility redirect
+

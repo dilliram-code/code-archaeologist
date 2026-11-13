@@ -65,3 +65,4 @@ The mission is to transform this abandoned repository into a modern, secure, cro
 3. Unit and integration tests execute and pass cleanly with real assertions.
 4. An Eel application starts and performs bidirectional RPC between Python and JavaScript.
 5. All security risks (command injection, arbitrary exec, debugger statements) are eliminated.
+

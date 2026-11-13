@@ -68,3 +68,4 @@
 - **Node.js / NPM (Optional for examples):** Examples 07 (CreateReactApp) and 09 (Electron) have frontend assets. The core Eel library itself has zero Node.js dependencies.
 - **System Web Browsers:** Google Chrome, Chromium, Microsoft Edge, or system default browser.
 - **Port Availability:** Dynamic port binding (`port=0`) or default port 8000.
+

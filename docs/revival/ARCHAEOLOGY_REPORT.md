@@ -125,3 +125,4 @@ Eel (Repository)
 - Remove arbitrary `exec()` in favor of dynamic attribute assignment (`setattr` / `__getattr__`).
 - Fix tests and assertions so they actually verify functionality.
 - Provide modern Docker and CI/CD workflows.
+

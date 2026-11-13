@@ -16,3 +16,4 @@ If you discover a security vulnerability in Eel, please report it responsibly.
 - Include a minimal reproducible example, affected operating system, Python version, and detailed description of the potential impact.
 
 The maintainers will review the report, develop a fix in private, and issue a patched release.
+
