@@ -585,8 +585,37 @@ def _process_message(message: Dict[str, Any], ws: WebSocketT) -> None:
 def _get_real_path(path: str) -> str:
     if getattr(sys, 'frozen', False):
         return os.path.join(sys._MEIPASS, path)  # type: ignore # sys._MEIPASS is dynamically added by PyInstaller
-    else:
+    
+    # Check if path exists directly or relative to current working directory
+    if os.path.exists(path):
         return os.path.abspath(path)
+
+    # If relative path is not found in cwd, resolve relative to calling script's directory
+    try:
+        import inspect
+        for frame_info in inspect.stack()[1:]:
+            caller_file = frame_info.filename
+            if not caller_file.startswith(os.path.dirname(__file__)):
+                caller_dir = os.path.dirname(os.path.abspath(caller_file))
+                rel_candidate = os.path.join(caller_dir, path)
+                if os.path.exists(rel_candidate):
+                    return rel_candidate
+                break
+    except Exception:
+        pass
+
+    return os.path.abspath(path)
+
+
+def __getattr__(name: str) -> Any:
+    """PEP 562 dynamic attribute access for exposed JavaScript functions callable from Python."""
+    if name.startswith('_'):
+        raise AttributeError(f"module 'eel' has no attribute '{name}'")
+    if not name.isidentifier():
+        raise AttributeError(f"'{name}' is not a valid identifier for an exposed function")
+    if len(_websockets) > 0:
+        return lambda *args: _js_call(name, args)
+    return lambda *args: _mock_call(name, args)
 
 
 def _mock_js_function(f: str) -> None:

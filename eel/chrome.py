@@ -27,7 +27,7 @@ def find_path() -> Optional[str]:
     if sys.platform in ['win32', 'win64']:
         return _find_chrome_win()
     elif sys.platform == 'darwin':
-        return _find_chrome_mac() or _find_chromium_mac() or _find_brave_mac()
+        return _find_chrome_mac()
     elif sys.platform.startswith('linux'):
         return _find_chrome_linux()
     else:
@@ -35,42 +35,41 @@ def find_path() -> Optional[str]:
 
 
 def _find_chrome_mac() -> Optional[str]:
-    default_dir = r'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-    if os.path.exists(default_dir):
-        return default_dir
-    # Use mdfind to locate Chrome in alternate locations and return the first one
-    name = 'Google Chrome.app'
-    try:
-        alternate_dirs = [x for x in sps.check_output(["mdfind", name]).decode().split('\n') if x.endswith(name)]
-        if alternate_dirs:
-            candidate = alternate_dirs[0] + '/Contents/MacOS/Google Chrome'
-            if os.path.isfile(candidate):
-                return candidate
-    except Exception:
-        pass
-    return None
+    # Check standard macOS application locations directly first for instant startup
+    candidates = [
+        r'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+        r'/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',
+        r'/Applications/Chromium.app/Contents/MacOS/Chromium',
+        r'/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+        os.path.expanduser(r'~/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'),
+        os.path.expanduser(r'~/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'),
+        os.path.expanduser(r'~/Applications/Chromium.app/Contents/MacOS/Chromium'),
+    ]
 
+    for path in candidates:
+        if os.path.isfile(path):
+            return path
 
-def _find_chromium_mac() -> Optional[str]:
-    default_dir = r'/Applications/Chromium.app/Contents/MacOS/Chromium'
-    if os.path.exists(default_dir):
-        return default_dir
-    name = 'Chromium.app'
-    try:
-        alternate_dirs = [x for x in sps.check_output(["mdfind", name]).decode().split('\n') if x.endswith(name)]
-        if alternate_dirs:
-            candidate = alternate_dirs[0] + '/Contents/MacOS/Chromium'
-            if os.path.isfile(candidate):
-                return candidate
-    except Exception:
-        pass
-    return None
+    # Fall back to mdfind search without spamming stderr
+    for app_name, bin_suffix in [
+        ('Google Chrome.app', '/Contents/MacOS/Google Chrome'),
+        ('Brave Browser.app', '/Contents/MacOS/Brave Browser'),
+        ('Chromium.app', '/Contents/MacOS/Chromium'),
+    ]:
+        try:
+            raw = sps.check_output(
+                ["mdfind", f"kMDItemFSName == '{app_name}'"],
+                stderr=sps.DEVNULL,
+                timeout=1.0
+            ).decode().strip()
+            for line in raw.split('\n'):
+                if line.endswith(app_name):
+                    target = line + bin_suffix
+                    if os.path.isfile(target):
+                        return target
+        except Exception:
+            pass
 
-
-def _find_brave_mac() -> Optional[str]:
-    default_dir = r'/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'
-    if os.path.exists(default_dir):
-        return default_dir
     return None
 
 
@@ -81,6 +80,8 @@ def _find_chrome_linux() -> Optional[str]:
         'google-chrome',
         'google-chrome-stable',
         'brave-browser',
+        'microsoft-edge',
+        'microsoft-edge-stable',
     ]
 
     for name in chrome_names:
