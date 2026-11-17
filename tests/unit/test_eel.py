@@ -141,3 +141,24 @@ def test_build_urls():
     urls = brw._build_urls(['main.html', {'scheme': 'http', 'host': 'localhost', 'port': 9000, 'path': 'page.html'}], options)
     assert urls[0] == 'http://127.0.0.1:8080/main.html'
     assert urls[1] == 'http://localhost:9000/page.html'
+
+
+def test_pep562_dynamic_js_function_dispatch():
+    """Test that unscanned or dynamic JS functions can be called on eel module without AttributeError."""
+    call_return = eel.any_arbitrary_js_function('arg1', 42)
+    assert callable(call_return)
+    assert any(call['name'] == 'any_arbitrary_js_function' for call in eel._mock_queue)
+
+    with pytest.raises(AttributeError):
+        _ = eel._private_attribute_should_fail
+
+    with pytest.raises(AttributeError):
+        _ = getattr(eel, 'not a valid identifier')
+
+
+def test_relative_path_resolution():
+    """Test that _get_real_path resolves paths correctly."""
+    # Test existing directory
+    real_path = eel._get_real_path(str(INIT_DIR))
+    assert os.path.exists(real_path)
+    assert os.path.isabs(real_path)
